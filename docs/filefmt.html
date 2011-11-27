@@ -1,0 +1,731 @@
+<html>
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=big5">
+<meta name="Copyright" content="DreamGrass &amp; WildHyacinth">
+<title>文件格式</title>
+<style>
+A:link, A:visited, A:hover {
+	text-transform: none;
+	text-decoration: none;
+	color: blue;
+}
+A:hover {
+	color: green;
+}
+</style>
+<base target="_self">
+</head>
+
+<body>
+
+<div style="padding: 5px; border: 1px dashed #FF0000;">本文章原文來自 http://www.fanicer.com/gallery/FileFmt.htm<br>以下內容沒有任何刪減及添加，本頁目的是讓更多人看到此文章。<br>若有任何版權問題，請到留言版留言。</div>
+<br>
+下文分析了CrossGate(魔力寶貝)的文件格式，因為StoneAge(石器時代)和它差不多(最初均為同一小組作品)，所以一併介紹。<br>
+原文作者為夢見草，由野風信子整理和完善。<br>
+<br>
+<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td><a href="">一．圖片數據</a></td>
+	</tr>
+	<tr>
+		<td><a href="">二．動畫信息</a></td>
+	</tr>
+	<tr>
+		<td><a href="">三．地圖格式</a></td>
+	</tr>
+	<tr>
+		<td><a href="">四．壓縮算法</a></td>
+	</tr>
+	<tr>
+		<td><a href="">五．調色板</a></td>
+	</tr>
+	<tr>
+		<td><a href="">六．各版本對應的文件</a></td>
+	</tr>
+	<tr>
+		<td><a href="">七．後續版本的改動</a></td>
+	</tr>
+</table>
+<a name="graphic"></a><center>一．圖片數據</center>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption align="left">圖片地址文件</caption>
+	<tr>
+		<td>CrossGate</td>
+		<td>GraphicInfo*_*.bin</td>
+	</tr>
+	<tr>
+		<td>StoneAge</td>
+		<td>Adrn_*.bin</td>
+	</tr>
+</table>
+<br>
+這個文件存放了圖片的地址索引，由若干個大小一樣的塊組成，<font color="red">每個塊長度為40字節(StoneAge為80字節)</font>，格式如下： 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>序號;</td>
+		<td>圖片的編號</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>地址;</td>
+		<td>指明圖片在數據文件中的起始位置</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>塊長度;</td>
+		<td>圖片數據塊的大小</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>偏移量X;</td>
+		<td>顯示圖片時，橫坐標偏移X</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>偏移量Y;</td>
+		<td>顯示圖片時，縱坐標偏移Y</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>圖片寬度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>圖片高度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>佔地面積-東;</td>
+		<td>佔地面積是物件所佔的大小，1就表示占1格</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>佔地面積-南;</td>
+		<td>同上</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>標誌;</td>
+		<td>用於地圖，0表示障礙物，1表示可以走上去</td>
+	</tr>
+	<tr>
+		<td>BYTE[5]</td>
+		<td>未知;</td>
+		<td><font color="red">在StoneAge中本字段長度為45字節</font></td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>地圖編號;</td>
+		<td>低16位表示在地圖文件裡的編號，高16位可能表示版本，非地圖單位的此項均為0</td>
+	</tr>
+</table>
+<br>
+其中偏移量XY是用於圖片定位的，比如X=-18，Y=-19，如果將圖片顯示在(100,100)，那麼實際位置應該是(82,81)，這樣才可以和其它圖片協調，在做人物動作gif的時候必須用這個參數來調整每一幀的位置，否則動作是抖動的，做地圖也需要，否則會錯位。 
+<br>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption align="left">圖片數據文件</caption>
+	<tr>
+		<td>CrossGate</td>
+		<td>Graphic*_*.bin</td>
+	</tr>
+	<tr>
+		<td>StoneAge</td>
+		<td>Real_*.bin</td>
+	</tr>
+</table>
+<br>
+這個文件包含了所有圖片的原始數據，每個數據塊由<font color="red">數據頭+數據</font>組成，每個<font color="red">數據頭長度16字節</font>，格式為： 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>BYTE[2]</td>
+		<td>魔數;</td>
+		<td>固定為&#39;RD&#39;</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>版本;</td>
+		<td>偶數表示未壓縮，按位圖存放；奇數則表示壓縮過</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>未知;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>寬度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>高度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>塊長度;</td>
+		<td>數據塊的長度，包括數據頭本身的長度(16BYTE)</td>
+	</tr>
+</table>
+<br>
+後三項和地址文件中的一樣，圖像數據緊跟在數據頭後面。<br>
+例如，要解開第100個圖片，首先在GraphicInfo_*.bin裡定位到第100條記錄，即偏移(40*100)字節的位置，根據讀出的地址在Graphic_*.bin中找到對應的數據塊，就可以讀出圖片數據了。<br>
+絕大部分圖片數據都是壓縮過的，<a href="">算法</a>後面會介紹。 <br>
+<br>
+<br>
+<a name="anime"></a><center>二．動畫信息</center>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption align="left">動畫地址文件</caption>
+	<tr>
+		<td>CrossGate</td>
+		<td>AnimeInfo*_*.bin</td>
+	</tr>
+	<tr>
+		<td>StoneAge</td>
+		<td>Spradrn_*.bin</td>
+	</tr>
+</table>
+<br>
+存放每個動畫在動畫序列文件中的地址索引，<font color="red">每個數據塊大小12字節</font>
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>序號;</td>
+		<td>動畫序號</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>地址;</td>
+		<td>指明在動畫信息文件中的地址</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>動作數目;</td>
+		<td>表示該角色有多少個完整的動作(包括各個方向)</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>未知;</td>
+		<td>　</td>
+	</tr>
+</table>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption align="left">動畫信息文件</caption>
+	<tr>
+		<td>CrossGate</td>
+		<td>Anime*_*.bin</td>
+	</tr>
+	<tr>
+		<td>StoneAge</td>
+		<td>Spr_*.bin</td>
+	</tr>
+</table>
+<br>
+該文件存放了全部動作的圖片序列，每個動作由<font color="red">數據頭+若干序列號</font>組成，<font color="red">數據頭長度12字節</font>。 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>方向號;</td>
+		<td>0-7分別表示8個方向</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>動作號;</td>
+		<td>表示該動作的含義，比如坐下或者走路</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>時間;</td>
+		<td>該動作完成一遍所需時間，單位為毫秒</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>幀數;</td>
+		<td>該動畫有多少幀，決定後面數據的大小</td>
+	</tr>
+</table>
+<br>
+某些動作號不是所有角色都有，比如跑步前的準備動作。 <br>
+<br>
+有多少幀，後面就跟有多少個序列號，<font color="red">每個序列號長10字節</font>。 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>圖片號;</td>
+		<td>該幀所使用的圖片</td>
+	</tr>
+	<tr>
+		<td>CHAR[6]</td>
+		<td>未知;</td>
+		<td>...</td>
+	</tr>
+</table>
+<br>
+圖片號就是該幀所用的圖片序號，用<a href="">圖片數據</a>裡說的方法就可解出每一幀的圖片數據。。 <br>
+<br>
+例如要解出340號角色的1方向的第5個動作，先在AnimeInfo_*.bin中定位到第340號數據塊，即偏移(12*340)字節的位置，讀出地址和動作數，然後根據地址在Anime_*.bin中定位到對應的位置，然後從該位置開始查找方向1動作5的序列，根據幀數讀出每一幀的圖片號，通過圖片號解出對應的圖片就行了。 
+<br>
+<br>
+其中未知的字段表示我還不知道用處的。 <br>
+<br>
+注意：CrossGate的動畫序列地址文件AnimeInfo_*.bin，可能由於開發時的某些原因，造成存放了3遍序列，並且按前兩遍解出的動畫是錯誤的，要以第3遍為準，第2375號角色才是第0號，其他的版本沒有這問題。 
+<br>
+<br>
+<br>
+<a name="map"></a><center>三．地圖格式</center><br>
+地圖文件就是map目錄下的那些，CrossGate的地圖檔在最前面有12個字節的文件頭，內容為&quot;MAP&quot;(後9字節為0)，StoneAge則沒有文件頭，其它完全一樣。 
+<br>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption align="left">地圖檔格式</caption>
+	<tr>
+		<td>字段類型</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>地圖長度-東(W)</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>地圖長度-南(H)</td>
+	</tr>
+	<tr>
+		<td>BYTE[W*H*2]</td>
+		<td>地面的數據，每一個單位2字節，為0表示無地面</td>
+	</tr>
+	<tr>
+		<td>BYTE[W*H*2]</td>
+		<td>地上的物件等，每一個物體2字節，為0表示該處無物件</td>
+	</tr>
+	<tr>
+		<td>BYTE[W*H*2]</td>
+		<td>地圖標誌，每一個單位2字節，具體不清楚，只知道對會引起地圖切換的地方有標識</td>
+	</tr>
+</table>
+<br>
+<div>
+	地圖是45度視角的四邊形，數據的存放順序是從東到西，由南至北，起點為左邊角(東0，南0)。<br>
+	假設讀入的3X3地圖數據順序為123456789，對應的地圖顯示： 
+	<table border="0" cellpadding="0" cellspacing="0">
+		<colgroup span="5" width="20px">
+		</colgroup>
+		<tr>
+			<td></td>
+			<td></td>
+			<td>3</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>2</td>
+			<td></td>
+			<td>6</td>
+		</tr>
+		<tr>
+			<td>1</td>
+			<td></td>
+			<td>5</td>
+			<td></td>
+			<td>9</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>4</td>
+			<td></td>
+			<td>8</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td>7</td>
+		</tr>
+	</table>
+</div>
+<br>
+<div>
+	這樣讀出來的數據是地圖編號，在<a href="">圖片數據</a>中說過，圖片地址文件的每一條記錄的最後一個字段就是地圖編號，現在就是根據這個編號反查出對應的圖片序號，將它顯示出來，由於遊戲本身沒有地圖索引文件(那是在運行遊戲的時候生成的)，所以要自制一份方便查找，這裡要注意的是地圖編號並不是連貫的，比如StoneAge最大的編號為41000，實際上用到的只有1萬多點，中間有很多編號是未使用的。 
+</div>
+<br>
+<div>
+	前面說過，每個圖片都有偏移量用於對齊，畫地圖的時候也需要的，不過這裡有點問題，若只是將偏移量加上坐標，地面沒有問題，而建築物縱坐標則會錯位，我並不知道正確的做法，我是這樣處理的：<br>
+	假設縱坐標偏移量為y，圖片高度h，要畫的坐標為y0，那麼實際的坐標y1就是<br>
+	y1=y0+h-47+y<br>
+	47是一個單位地面的高度(所以地面不必這樣處理，因為h-47=0)，這樣做可以基本對齊，希望有朋友提供更標準的方法。 </div>
+<br>
+<div>
+	另外，關於<font color="red">縮略圖</font>，就是將每個單位(佔地面積1X1)縮成如下的四個點：<br>
+	　□<br>
+	□□□<br>
+	如果一個物件面積為2X1，那麼就是<br>
+	　　　□<br>
+	　□□□□<br>
+	□□□<br>
+	縮略圖中每個圖片都只用一種顏色表示，而這個顏色好像也是遊戲自動生成的，所以要做縮略圖的話，自己要製作一份顏色表。 </div>
+<br>
+<br>
+<a name="algorithm"></a><center>四．壓縮算法</center><br>
+這是JSS自定的一種Run-Length算法，用於StoneAge和CrossGate，下面是說明： <br>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<colgroup span="4" align="center">
+	</colgroup>
+	<tr>
+		<td>首字節(00)</td>
+		<td>01</td>
+		<td>02</td>
+		<td>03</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>0n</td>
+		<td>String</td>
+		<td>　</td>
+		<td>　</td>
+		<td>長度為n的字符串</td>
+	</tr>
+	<tr>
+		<td>1n</td>
+		<td>m</td>
+		<td>String</td>
+		<td>　</td>
+		<td>長度為n*0x100+m的字符串</td>
+	</tr>
+	<tr>
+		<td>2x</td>
+		<td>y</td>
+		<td>z</td>
+		<td>String</td>
+		<td>長度為x*0x10000+y*0x100+z的字符串</td>
+	</tr>
+	<tr>
+		<td>8n</td>
+		<td>X</td>
+		<td>　</td>
+		<td>　</td>
+		<td>填充n個X</td>
+	</tr>
+	<tr>
+		<td>9n</td>
+		<td>X</td>
+		<td>m</td>
+		<td>　</td>
+		<td>填充n*0x100+m個X</td>
+	</tr>
+	<tr>
+		<td>Ax</td>
+		<td>X</td>
+		<td>y</td>
+		<td>z</td>
+		<td>填充x*0x10000+y*0x100+z個X</td>
+	</tr>
+	<tr>
+		<td>Cn</td>
+		<td>　</td>
+		<td>　</td>
+		<td>　</td>
+		<td>填充n個背景色</td>
+	</tr>
+	<tr>
+		<td>Dn</td>
+		<td>m</td>
+		<td>　</td>
+		<td>　</td>
+		<td>填充n*0x100+m個背景色</td>
+	</tr>
+	<tr>
+		<td>Ex</td>
+		<td>y</td>
+		<td>z</td>
+		<td>　</td>
+		<td>填充x*0x10000+y*0x100+z個背景色</td>
+	</tr>
+</table>
+<br>
+比如，C9表示填充9個背景色，D1 10表示填充0x110個背景色，12 50表示後面跟著一個長度為0x250的字符串，91 02 30則表示將0x02重複0x130遍。 
+<br>
+<br>
+<br>
+<a name="palet"></a><center>五．調色板</center><br>
+StoneAge的調色板文件是位於data/pal目錄下的palet_*.sap，CrossGate的則為bin/pal目錄下的palet_*.cgp，每個文件長度均為708字節，每種顏色3字節，所以每個文件都包含了236種顏色，要注意的是它不是從0號顏色開始排列的，而是從16號，即16-252，但實際上是16-240，前16種顏色和後16種顏色都是指定，文件中的240-252號顏色並沒有使用，下面是指定的32種顏色： 
+<br>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption>0-15號色</caption>
+	<colgroup span="17" align="center">
+	</colgroup>
+	<tr>
+		<td>顏色號</td>
+		<td>0</td>
+		<td>1</td>
+		<td>2</td>
+		<td>3</td>
+		<td>4</td>
+		<td>5</td>
+		<td>6</td>
+		<td>7</td>
+	</tr>
+	<tr>
+		<td>RGB值</td>
+		<td>(00,00,00)</td>
+		<td>(00,00,80)</td>
+		<td>(00,80,00)</td>
+		<td>(00,80,80)</td>
+		<td>(80,00,00)</td>
+		<td>(80,00,80)</td>
+		<td>(80,80,00)</td>
+		<td>(C0,C0,C0)</td>
+	</tr>
+	<tr>
+		<td>顏色號</td>
+		<td>8</td>
+		<td>9</td>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+		<td>E</td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td>RGB值</td>
+		<td>(C0,DC,C0)</td>
+		<td>(F0,CA,A6)</td>
+		<td>(00,00,DE)</td>
+		<td>(00,5F,FF)</td>
+		<td>(A0,FF,FF)</td>
+		<td>(D2,5F,00)</td>
+		<td>(FF,D2,50)</td>
+		<td>(28,E1,28)</td>
+	</tr>
+</table>
+<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<caption>240-255號色</caption>
+	<colgroup span="17" align="center">
+	</colgroup>
+	<tr>
+		<td>顏色號</td>
+		<td>F0</td>
+		<td>F1</td>
+		<td>F2</td>
+		<td>F3</td>
+		<td>F4</td>
+		<td>F5</td>
+		<td>F6</td>
+		<td>F7</td>
+	</tr>
+	<tr>
+		<td>RGB值</td>
+		<td>(96,C3,F5)</td>
+		<td>(5F,A0,1E)</td>
+		<td>(46,7D,C3)</td>
+		<td>(1E,55,9B)</td>
+		<td>(37,41,46)</td>
+		<td>(1E,23,28)</td>
+		<td>(F0,FB,FF)</td>
+		<td>(A5,6E,3A)</td>
+	</tr>
+	<tr>
+		<td>顏色號</td>
+		<td>F8</td>
+		<td>F9</td>
+		<td>FA</td>
+		<td>FB</td>
+		<td>FC</td>
+		<td>FD</td>
+		<td>FE</td>
+		<td>FF</td>
+	</tr>
+	<tr>
+		<td>RGB值</td>
+		<td>(80,80,80)</td>
+		<td>(00,00,FF)</td>
+		<td>(00,FF,00)</td>
+		<td>(00,FF,FF)</td>
+		<td>(FF,00,00)</td>
+		<td>(FF,80,FF)</td>
+		<td>(FF,FF,00)</td>
+		<td>(FF,FF,FF)</td>
+	</tr>
+</table>
+<br>
+說一下常用的幾個調色板：<br>
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>　</td>
+		<td>白天</td>
+		<td>傍晚</td>
+		<td>黑夜</td>
+		<td>凌晨</td>
+	</tr>
+	<tr>
+		<td>StoneAge</td>
+		<td>palet_01.sap</td>
+		<td>palet_02.sap</td>
+		<td>palet_03.sap</td>
+		<td>palet_04.sap</td>
+	</tr>
+	<tr>
+		<td>CrossGate</td>
+		<td>palet_00.cgp</td>
+		<td>palet_01.cgp</td>
+		<td>palet_02.cgp</td>
+		<td>palet_03.cgp</td>
+	</tr>
+</table>
+<br>
+<br>
+<a name="version"></a><center>六．各版本對應的文件</center><br>
+CrossGate每個大版本都有相對獨立的文件，比如最初的版本圖片數據文件是Graphic_*.bin等，而龍沙的則是GraphicEx_*.bin，附加上了&quot;Ex&quot;，下面是各個版本所使用的附加名。 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>版本</td>
+		<td>附加名</td>
+	</tr>
+	<tr>
+		<td>龍之沙時計</td>
+		<td>Ex</td>
+	</tr>
+	<tr>
+		<td>樂園之卵(精靈)</td>
+		<td>V3</td>
+	</tr>
+	<tr>
+		<td>樂園之卵</td>
+		<td>_PUK2</td>
+	</tr>
+</table>
+<br>
+<br>
+<a name="extra"></a><center>七．後續版本的改動</center><br>
+這裡說的是CrossGatePuk2(樂園之卵)的數據格式變動。<br>
+樂園之卵中的圖片不再使用全局調色板，靜態圖片都自帶調色板，動畫則是用隱藏調色板。<br>
+<br>
+首先是自帶調色板，圖片數據中的文件頭被擴充至20字節，且版本字段大於等於2(之前的為0和1)。 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>BYTE[2]</td>
+		<td>魔數;</td>
+		<td>固定為&#39;RD&#39;</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>版本;</td>
+		<td>偶數表示未壓縮，按位圖存放；奇數則表示壓縮過</td>
+	</tr>
+	<tr>
+		<td>BYTE</td>
+		<td>未知;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>寬度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>高度;</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td>塊長度;</td>
+		<td>數據塊的長度，包括數據頭本身的長度(20BYTE)</td>
+	</tr>
+	<tr>
+		<td>LONG</td>
+		<td><font color="red">調色板長度;</font></td>
+		<td><font color="red">調色板數據所佔的長度，通常為0x300，即256*3=768</font></td>
+	</tr>
+</table>
+<br>
+還原後的數據最後那部分則是自帶的調色板數據，大小和調色板長度字段的內容相同。<br>
+<br>
+隱藏調色板本身其實是一些4X1的自帶調色板的圖片，它們的地圖編號字段被重新解釋了，表示使用這個調色板的動畫序號，比如地圖編號為0x1B680，那麼在還原第0x1B680號動畫的時候，就要使用該圖片所帶的調色板。<br>
+隱藏調色板存在於GraphicInfoV3_*.bin中，即使是AnimeInfo_PUK2_*.bin中的動畫也是使用這裡的調色板，從3840幅圖片開始是隱藏調色板，不過並不是全部連續存在的，所以需要判斷，除了寬4高1外，普通圖片的地圖編號高位為0或者3(樂園版本的地圖)，調色板的則不是，可以依此辨別。 
+<br>
+<br>
+樂園之卵的動畫也有很大改變，同一類型的各種寵物，以前是各自有獨立的圖片，現在是通過改變調色板來區別的(我認為如果能將玩家角色這樣簡化就好了，寵物反而不應這樣)，方向也簡化了，右邊的三個方向是左邊對稱過去的，這是一種偷工減料，不過也減少了文件的體積……同時也導致了數據格式的改變。動畫信息文件中的數據頭結構變化： 
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>字段類型</td>
+		<td>內容</td>
+		<td>說明</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>方向號;</td>
+		<td>0-7分別表示8個方向</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td>動作號;</td>
+		<td>表示該動作的含義，比如坐下或者走路</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>時間;</td>
+		<td>該動作完成一遍所需時間，單位為毫秒</td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>幀數;</td>
+		<td>該動畫有多少幀，決定後面數據的大小</td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td><font color="red">調色板號;</font></td>
+		<td><font color="red">沒完全弄清楚，我不用它來判斷</font></td>
+	</tr>
+	<tr>
+		<td>WORD</td>
+		<td><font color="red">反向;</font></td>
+		<td><font color="red">若為奇數表示該序列的圖片左右反向</font></td>
+	</tr>
+	<tr>
+		<td>DWORD</td>
+		<td>未知;</td>
+		<td>為0xFFFFFFFF，可能是結束符，便於以後再擴充？</td>
+	</tr>
+</table>
+<br>
+要提取樂園之卵後的圖片和動畫，就必須用以上新的格式。地圖的格式本身沒有變化，不過增加了附屬的文件，主要是和圖片分割有關…… 目前沒有研究，所以沒有資料了。
+</body>
+
+</html>

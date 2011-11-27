@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gcc -l SDL -I inc vmain.c __temp_mapnoview.c mmap.c SDLUtils.c Automap_SA.c readaut_SA.c GraphInfo_SA.c Graphic_SA.c Palette_SA.c DeGraph.c DiamondMap_SA.c readmap_SA.c GraphIdx_SA.c SDL_Graphic.c

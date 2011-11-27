@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gcc -O9 -l SDL -I inc main.c mmap.c SDLUtils.c Automap_SA.c readaut_SA.c AnimeInfo_SA.c Anime_SA.c GraphInfo_SA.c Graphic_SA.c Palette_SA.c DeGraph.c XSurface.c DiamondMap_SA.c readmap_SA.c GraphIdx_SA.c SDL_Graphic.c
